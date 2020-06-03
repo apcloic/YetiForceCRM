@@ -530,7 +530,9 @@ class Mailer
 			}
 		}
 		if ($mailer->getSmtp('individual_delivery')) {
-			foreach (Json::decode($rowQueue['to']) as $email => $name) {
+			$regexp = '/([a-z0-9_\.\-])+\@(([a-z0-9\-])+\.)+([a-z0-9]{2,4})+/i';
+			$recepients = preg_match_all($regexp, $rowQueue['to'], $m);
+			foreach ($m[0] as $email => $name) {
 				$separateMailer = $mailer->cloneMailer();
 				if (is_numeric($email)) {
 					$email = $name;
