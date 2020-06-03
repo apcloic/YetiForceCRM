@@ -35,7 +35,7 @@ class VTEmailTask extends VTTask
 			$fromEmailDetails = $emailParser->setContent($this->fromEmail)->parse()->getContent(true);
 			if ($fromEmailDetails) {
 				foreach ($fromEmailDetails as $key => $value) {
-					$mailerContent['from'] = ['email' => $key, 'name' => $value];
+					$mailerContent['from'] = ['email' => $value];
 				}
 			}
 		}
