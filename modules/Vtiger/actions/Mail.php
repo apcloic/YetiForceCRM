@@ -68,34 +68,41 @@ class Vtiger_Mail_Action extends \App\Controller\Action
 		if (!empty($template) && !empty($field)) {
 			$emails = [];
 			$dataReader = $this->getQuery($request)->createCommand()->query();
-			while ($row = $dataReader->read()) {
-				if (isset($emails[$row[$field]])) {
-					continue;
-				}
-				$emails[$row[$field]] = true;
-				foreach($field as $recepient) {
-				  if ('Campaigns' === $sourceModule) {
-					$result = \App\Mailer::sendFromTemplate([
-						'template' => $template,
-						'moduleName' => $sourceModule,
-						'recordId' => $sourceRecord,
-						'to' => $row[$recepient],
-						'sourceModule' => $moduleName,
-						'sourceRecord' => $row['id'],
-					]);
-				  } else {
-					$result = \App\Mailer::sendFromTemplate([
-						'template' => $template,
-						'moduleName' => $moduleName,
-						'recordId' => $row['id'],
-						'to' => $row[$recepient],
-						'sourceModule' => $sourceModule,
-						'sourceRecord' => $sourceRecord,
-					]);
-				  }
-				}
-				if (!$result) {
-					break;
+			while ($row = $dataReader->read()) {				
+				foreach($field as $recepient) {	    
+					if($row[$recepient]) {		
+						if (isset($emails[$row[$recepient]])) {
+						continue;
+						}
+					
+						$emails[$row[$recepient]] = true;
+						
+					foreach($field as $recepient) {
+						
+				 		if ('Campaigns' === $sourceModule) {
+							$result = \App\Mailer::sendFromTemplate([
+									'template' => $template,
+									'moduleName' => $sourceModule,
+									'recordId' => $sourceRecord,
+									'to' => $row[$recepient],
+									'sourceModule' => $moduleName,
+									'sourceRecord' => $row['id'],
+							]);
+				 		} else {
+							$result = \App\Mailer::sendFromTemplate([
+									'template' => $template,
+									'moduleName' => $moduleName,
+									'recordId' => $row['id'],
+									'to' => $row[$recepient],
+									'sourceModule' => $sourceModule,
+									'sourceRecord' => $sourceRecord,
+							]);
+				  		}
+						
+						if (!$result) {
+								break;
+						}
+					}			
 				}
 			}
 			$dataReader->close();
@@ -148,10 +155,10 @@ class Vtiger_Mail_Action extends \App\Controller\Action
 		$baseTableName = $moduleModel->get('basetable');
 		$baseTableId = $moduleModel->get('basetableid');
 		
-		$fields = $request->getByType('field');
-		foreach ($fields as $field) {
-		$queryGenerator->setFields('id', $field);
-		$queryGenerator->addCondition($field, '', 'ny');
+		$fields = "'".implode("','", $request->getByType('field'))."'";
+		$queryGenerator->setFields('id', $fields);
+		foreach ($request->getByType('field') as $field) {
+			$queryGenerator->addCondition($field, '', 'ny');
 		}
 		$selected = $request->getArray('selected_ids', 2);
 		if ($selected && 'all' !== $selected[0]) {
